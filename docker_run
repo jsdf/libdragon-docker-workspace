@@ -1,0 +1,40 @@
+#!/bin/bash
+set -euo pipefail
+
+# this script can be used to start a container with the libdragon-workspace image
+# and run a command
+
+# Container name and script directory
+CONTAINER_NAME="libdragon-workspace_current"
+SCRIPT_DIR=${SCRIPT_DIR:-$(pwd)}
+INTERACTIVE=${INTERACTIVE:-}
+
+# Check if the container exists
+if [ "$(docker ps -a -q -f name="$CONTAINER_NAME")" ]; then
+    # If the container is stopped, start it
+    if [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME")" == "false" ]; then
+        echo "Starting existing container: $CONTAINER_NAME"
+        docker start "$CONTAINER_NAME"
+    fi
+    # Execute a command inside the running container
+    echo "Attaching to running container: $CONTAINER_NAME"
+    if [ -n "$INTERACTIVE" ]; then
+        # shellcheck disable=SC2068
+        docker exec -it "$CONTAINER_NAME" $@
+    else
+        # shellcheck disable=SC2068
+        docker exec "$CONTAINER_NAME" $@
+    fi
+else
+    # If the container doesn't exist, create and run it
+    echo "Creating and starting new container: ""$CONTAINER_NAME"
+    docker run \
+        --name "$CONTAINER_NAME" \
+        --volume "$SCRIPT_DIR:/workspace" \
+        --workdir /workspace \
+        "$CONTAINER_NAME"
+
+    # now running, should be able to exec
+    # shellcheck disable=SC2068
+    ./docker_run $@
+fi

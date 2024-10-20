@@ -1,0 +1,7 @@
+#!/bin/bash
+set -euo pipefail
+
+# this script can be used to start a container running bash, with networking connected to host.
+# this is useful to keep a container running for interactive development and connecting from VSCode.
+
+INTERACTIVE=1 ./docker_run bash
