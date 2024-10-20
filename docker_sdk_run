@@ -10,10 +10,8 @@ SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 # - run as the current host os user, to avoid permission issues
 # - mount the current directory to /workspace in the container
 # - change the working directory to /workspace
-# - remove the container when it exits
 # - and run the command passed as arguments
 docker run \
     --volume "$SCRIPT_DIR:/workspace" \
     --workdir /workspace \
-    --rm \
     libdragon-workspace "$@"

@@ -16,14 +16,12 @@ echo "Host IP (aliased as 'host'): $HOST_IP"
 # - run as the current host os user, to avoid permission issues
 # - mount the current directory as /workspace in the container
 # - set the working directory to /workspace
-# - remove the container when it exits
 # - run the container interactively and allocate a pseudo-TTY
 # - add an alias for the host machine's IP address (to connect network services to the host)
 docker run \
     --name $CONTAINER_NAME \
     --volume "$SCRIPT_DIR:/workspace" \
     --workdir /workspace \
-    --rm \
     --interactive \
     --tty \
     --add-host="host:$HOST_IP" \
