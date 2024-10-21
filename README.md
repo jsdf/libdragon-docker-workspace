@@ -16,12 +16,11 @@ first make sure you've [installed docker](https://docs.docker.com/get-started/ge
 
 ```bash
 git clone https://github.com/jsdf/libdragon-docker-workspace.git
-cd libdragon-docker-workspace
-chmod +x ./docker_*
+cd libdragon-docker-workspace 
 ./docker_build
 
 # clone any other repos you want (e.g. game sources or templates) into this directory
-git clone https://github.com/jsdf/my-game-template
+git clone https://github.com/n64brew/N64brew-GameJam2024-Template gamejam2024
 
 # start a shell inside the docker environment, where you can compile your games.
 # the /workspace directory of this container is the libdragon-docker-workspace directory.
@@ -29,23 +28,16 @@ git clone https://github.com/jsdf/my-game-template
 ```
 
 now you're in a shell inside the docker container.
-the compiled libdragon library and headers are installed at
-
-- `/n64_toolchain/mips64-elf/lib/libdragon.a`
-- `/n64_toolchain/mips64-elf/include/libdragon.h`
-
-
-source the environment variables used by libdragon and tiny3d
-```
-``
+this container has libdragon and tiny3d already built, and 
+appropriate environment variables set for compiling games
+which use them.
 
 you can now `cd` into your game source directories and compile them.
 
 ```
-$ cd /workspace/my-game-template
+$ cd gamejam2024
+$ make
 ```
-
-now build your game.
 
 ## commands
 

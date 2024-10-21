@@ -37,21 +37,19 @@ create_container() {
 
 # Check if the image has been rebuilt
 if [ -n "$CONTAINER_ID" ]; then
-    CURRENT_IMAGE_ID=$(docker inspect --format="{{.Image}}" "$CONTAINER_ID")
-    LATEST_IMAGE_ID=$(docker inspect --format="{{.Id}}" "$IMAGE_NAME")
+    RUNNING_IMAGE_ID=$(docker inspect --format="{{.Image}}" "$CONTAINER_ID")
+    BUILD_IMAGE_ID=$(docker inspect --format="{{.Id}}" "$IMAGE_NAME")
 
-    echo "Current image ID: $CURRENT_IMAGE_ID"
-    echo "Latest image ID: $LATEST_IMAGE_ID"
+    echo "Running image ID: $RUNNING_IMAGE_ID"
+    echo "Build image ID:   $BUILD_IMAGE_ID"
 
-    if [ "$CURRENT_IMAGE_ID" != "$LATEST_IMAGE_ID" ]; then
+    if [ "$RUNNING_IMAGE_ID" != "$BUILD_IMAGE_ID" ]; then
         echo "Image has been rebuilt, restarting container."
         docker stop "$CONTAINER_ID"
         docker rm "$CONTAINER_ID"
 
-        echo "RECURSE"
-        # shellcheck disable=SC2068,SC2128,SC2086
+        # shellcheck disable=SC2068
         ./docker_run ${ARGS[@]:-}
-        echo "END RECURSE"
     else
         echo "Container is already using the latest image."
 
@@ -64,11 +62,13 @@ if [ -n "$CONTAINER_ID" ]; then
         echo -n "Attaching to running container "
         if [ -n "$INTERACTIVE" ]; then
             echo "(interactive): $CONTAINER_NAME"
-            # shellcheck disable=SC2068,SC2128,SC2086
+
+            # shellcheck disable=SC2068
             docker exec -it "$CONTAINER_NAME" ${ARGS[@]:-}
         else
             echo "(non-interactive): $CONTAINER_NAME"
-            # shellcheck disable=SC2068,SC2128,SC2086
+
+            # shellcheck disable=SC2068
             docker exec "$CONTAINER_NAME" ${ARGS[@]:-}
         fi
     fi
@@ -80,6 +80,7 @@ else
     create_container
 
     # now running, should be able to exec
-    # shellcheck disable=SC2068,SC2128,SC2086
+
+    # shellcheck disable=SC2068
     ./docker_run ${ARGS[@]:-}
 fi
