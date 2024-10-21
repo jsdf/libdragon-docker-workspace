@@ -1,6 +1,0 @@
-#!/bin/bash
-set -euo pipefail
-
-# this script can be used to start a container running bash.
-
-INTERACTIVE=1 ./docker_run bash

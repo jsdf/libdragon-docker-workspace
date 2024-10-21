@@ -6,35 +6,80 @@ set -euo pipefail
 
 # Container name and script directory
 CONTAINER_NAME="libdragon-workspace_current"
+IMAGE_NAME="libdragon-workspace"
 SCRIPT_DIR=${SCRIPT_DIR:-$(pwd)}
 INTERACTIVE=${INTERACTIVE:-}
 
 # Check if the container exists
-if [ "$(docker ps -a -q -f name="$CONTAINER_NAME")" ]; then
-    # If the container is stopped, start it
-    if [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME")" == "false" ]; then
-        echo "Starting existing container: $CONTAINER_NAME"
-        docker start "$CONTAINER_NAME"
-    fi
-    # Execute a command inside the running container
-    echo "Attaching to running container: $CONTAINER_NAME"
-    if [ -n "$INTERACTIVE" ]; then
-        # shellcheck disable=SC2068
-        docker exec -it "$CONTAINER_NAME" $@
-    else
-        # shellcheck disable=SC2068
-        docker exec "$CONTAINER_NAME" $@
-    fi
+CONTAINER_ID=$(docker ps -aqf "name=$CONTAINER_NAME")
+
+# Arguments to pass to the container
+if [ $# -eq 0 ]; then
+    ARGS=("bash")
 else
-    # If the container doesn't exist, create and run it
-    echo "Creating and starting new container: ""$CONTAINER_NAME"
+    ARGS=("$@")
+fi
+
+if [ "${ARGS[0]}" == "bash" ]; then
+    INTERACTIVE=1
+fi
+
+create_container() {
     docker run \
+        --detach \
+        --interactive \
+        --tty \
         --name "$CONTAINER_NAME" \
         --volume "$SCRIPT_DIR:/workspace" \
         --workdir /workspace \
-        "$CONTAINER_NAME"
+        "$IMAGE_NAME"
+}
+
+# Check if the image has been rebuilt
+if [ -n "$CONTAINER_ID" ]; then
+    CURRENT_IMAGE_ID=$(docker inspect --format="{{.Image}}" "$CONTAINER_ID")
+    LATEST_IMAGE_ID=$(docker inspect --format="{{.Id}}" "$IMAGE_NAME")
+
+    echo "Current image ID: $CURRENT_IMAGE_ID"
+    echo "Latest image ID: $LATEST_IMAGE_ID"
+
+    if [ "$CURRENT_IMAGE_ID" != "$LATEST_IMAGE_ID" ]; then
+        echo "Image has been rebuilt, restarting container."
+        docker stop "$CONTAINER_ID"
+        docker rm "$CONTAINER_ID"
+
+        echo "RECURSE"
+        # shellcheck disable=SC2068,SC2128,SC2086
+        ./docker_run ${ARGS[@]:-}
+        echo "END RECURSE"
+    else
+        echo "Container is already using the latest image."
+
+        # If the container is stopped, start it
+        if [ "$(docker inspect -f '{{.State.Running}}' $CONTAINER_NAME)" == "false" ]; then
+            echo "Starting existing container: $CONTAINER_NAME"
+            docker start "$CONTAINER_NAME"
+        fi
+        # Execute a command inside the running container
+        echo -n "Attaching to running container "
+        if [ -n "$INTERACTIVE" ]; then
+            echo "(interactive): $CONTAINER_NAME"
+            # shellcheck disable=SC2068,SC2128,SC2086
+            docker exec -it "$CONTAINER_NAME" ${ARGS[@]:-}
+        else
+            echo "(non-interactive): $CONTAINER_NAME"
+            # shellcheck disable=SC2068,SC2128,SC2086
+            docker exec "$CONTAINER_NAME" ${ARGS[@]:-}
+        fi
+    fi
+else
+    echo "No container found, starting a new one."
+
+    # If the container doesn't exist, create and run it
+    echo "Creating and starting new container: ""$CONTAINER_NAME"
+    create_container
 
     # now running, should be able to exec
-    # shellcheck disable=SC2068
-    ./docker_run $@
+    # shellcheck disable=SC2068,SC2128,SC2086
+    ./docker_run ${ARGS[@]:-}
 fi

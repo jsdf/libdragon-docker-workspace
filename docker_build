@@ -1,2 +1,3 @@
 #!/bin/bash
-docker build -t libdragon-workspace .
+
+docker build --tag libdragon-workspace .

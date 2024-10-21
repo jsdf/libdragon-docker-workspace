@@ -1,6 +1,6 @@
 # dockerized n64 libdragon workspace
 
-this repo aims to make libdragon easy to get started with, even if you
+this repo aims to make libdragon and tiny3d easy to get started with, even if you
 don't have much experience with docker.
 
 i personally find docker's cli annoying and hard to remember, and i also had trouble
@@ -34,6 +34,11 @@ the compiled libdragon library and headers are installed at
 - `/n64_toolchain/mips64-elf/lib/libdragon.a`
 - `/n64_toolchain/mips64-elf/include/libdragon.h`
 
+
+source the environment variables used by libdragon and tiny3d
+```
+``
+
 you can now `cd` into your game source directories and compile them.
 
 ```
@@ -49,7 +54,7 @@ now build your game.
 build the docker image. you only need to do this once, unless you change the Dockerfile.
 this will install the n64 gcc compiler and use it to build libdragon.
 
-### `docker_shell`
+### `docker_run`
 
 start a container (or reuse the container which is already running) with the n64 compiler toolchain available (e.g. mips64-elf-gcc compiler) and drop you into a bash shell.
 this is useful for interactive development and connecting from VSCode.
@@ -57,6 +62,7 @@ this is useful for interactive development and connecting from VSCode.
 ### `docker_run [cmd]`
 
 start a container (or reuse the container which is already running) with the n64 compiler toolchain available (e.g. mips64-elf-gcc compiler) and run the specified command.
+exit when the command completes.
 
 ### `docker_stop`
 
